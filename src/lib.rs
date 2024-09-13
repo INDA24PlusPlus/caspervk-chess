@@ -106,17 +106,11 @@ impl Game{
 
     fn get_piece_orthogonal_movements(&self, position: usize, side: Side, out: &mut Vec<usize>, allowedLength: u8){
 
-        Self::get_directions_movements(&self, &mut orthogonal_callbacks, position, side, out, allowedLength);
+        Self::get_directions_movements(&self, &mut self.orthogonal_callbacks, position, side, out, allowedLength);
     }
 
     fn get_piece_diagonal_movements(&self, position: usize, side: Side, out: &mut Vec<usize>, allowedLength: u8){
-        let mut diagonal_callbacks: Vec<Box<dyn Fn(usize, usize) -> (usize, bool)>> = Vec::new();
-        diagonal_callbacks.push(Box::new(top_right_callback));
-        diagonal_callbacks.push(Box::new(top_left_callback));
-        diagonal_callbacks.push(Box::new(bottom_right_callback));
-        diagonal_callbacks.push(Box::new(bottom_left_callback));
-
-        Self::get_directions_movements(&self,&mut diagonal_callbacks, position, side, out, allowedLength);
+        Self::get_directions_movements(&self,&mut self.diagonal_callbacks, position, side, out, allowedLength);
     }
 
     fn get_rook_possible_movements(&self, position: usize, side: Side, out: &mut Vec<usize>){
