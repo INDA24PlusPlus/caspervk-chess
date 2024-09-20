@@ -455,11 +455,7 @@ impl Game{
 
     //gets current turns king threat status. (if checked or checkmated)
     fn get_king_threat_status(&self) -> BoardState{
-        let king_pos = if self.curr_turn == Side::White {
-            self.white_king_pos
-        } else {
-            self.black_king_pos
-        };
+        let king_pos = self.get_curr_turn_king_pos();
         if Self::is_checked(&self, king_pos, false){
             if Self::is_checked_mate(&self, king_pos){
                 return BoardState::CheckMated(self.curr_turn);
