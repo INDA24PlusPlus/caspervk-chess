@@ -483,7 +483,7 @@ impl Game{
                     self.board_pieces[5] = self.board_pieces[7];
                     self.board_pieces_sides[5] = self.board_pieces_sides[7];
                     self.board_pieces[7] = Piece::None;
-                    self.board_pieces_sides[77] = Side::None;
+                    self.board_pieces_sides[7] = Side::None;
                 }
             }
             match origin {
