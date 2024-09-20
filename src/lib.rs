@@ -441,7 +441,7 @@ impl Game{
         return true;
     }
     
-    pub fn get_board_state(&mut self) -> BoardState{
+    fn get_board_state(&mut self) -> BoardState{
         //TODO: Clean this repetitive code up.
        if(self.curr_turn == Side::White && Self::is_checked(&self, self.white_king_pos, false)){
         if(self.is_checked_mate(self.white_king_pos)){
