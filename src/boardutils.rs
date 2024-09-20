@@ -15,6 +15,8 @@ pub enum Side{
     Black = 1,
     None = 2
 }
+
+#[derive(Debug, Clone)]
 pub enum BoardState{
     Default = 0,
     WhiteChecked = 1,
@@ -23,8 +25,12 @@ pub enum BoardState{
     BlackLoseByCheckMate = 4,
     WhiteLoseByTime = 5,
     BlackLoseByTime = 6,
-    Draw = 7
+    DrawBy50Rule = 7,
+    DrawByStaleMate = 8,
+    WhitePromotion = 9,
+    BlackPromotion = 10,
 }
+#[derive(Debug, Clone)]
 pub struct CastleInfo{
     pub top_right_rook_moved: bool,
     pub bottom_right_rook_moved: bool,
@@ -66,52 +72,52 @@ pub const INITIAL_BOARD_SIDES: [Side; 64] = [
     Side::Black, Side::Black, Side::Black, Side::Black, Side::Black, Side::Black,Side::Black, Side::Black
 ];
 
-pub fn is_pos_outside_of_board(position: usize) -> bool{
+pub fn is_pos_outside_of_board(position: i8) -> bool{
     return position > 63 || position < 0;
 }
-pub fn is_pos_on_right_edge(position: usize) -> bool{
+pub fn is_pos_on_right_edge(position: i8) -> bool{
     return (position+1)%8 == 0;
 }
-pub fn is_pos_on_left_edge(position: usize) -> bool{
+pub fn is_pos_on_left_edge(position: i8) -> bool{
     return position%8 == 0;
 }
 
-pub type DirCallback = fn(usize, usize) -> (usize, bool);
+pub type DirCallback = fn(i8, i8) -> (i8, bool);
 
-pub fn right_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos-n+1;
-    return (target, is_pos_on_right_edge(target+1));
+pub fn right_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos+n;
+    return (target, is_pos_on_right_edge(target-1) && n != 0);
 }
-pub fn left_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos-n-1;
-    return (target, is_pos_on_left_edge(target-1));
+pub fn left_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos-n;
+    return (target, is_pos_on_left_edge(target+1) && n != 0);
 }
-pub fn up_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos-(n+1)*8;
-    return (target, is_pos_outside_of_board(target-8));
+pub fn up_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos-n*8;
+    return (target, is_pos_outside_of_board(target));
 }
-pub fn down_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos+(n+1)*8;
-    return (target, is_pos_outside_of_board(target+8));
-}
-
-
-pub fn top_right_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos - (n + 1) * 9 as usize;
-    return (target, is_pos_on_right_edge(target-9))
+pub fn down_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos+n*8;
+    return (target, is_pos_outside_of_board(target));
 }
 
-pub fn top_left_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos - (n + 1) * 7;
-    return (target, is_pos_on_left_edge(target-7))
+
+pub fn top_right_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos - n*9;
+    return (target, is_pos_on_right_edge(target))
 }
 
-pub fn bottom_right_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos + (n + 1) * 7;
-    return (target, is_pos_on_right_edge(target+7))
+pub fn top_left_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos - n*7;
+    return (target, is_pos_on_left_edge(target))
 }
 
-pub fn bottom_left_callback(original_pos: usize, n: usize) -> (usize, bool){
-    let target = original_pos + (n + 1) * 9;
-    return (target, is_pos_on_left_edge(target+9))
+pub fn bottom_right_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos + n*7;
+    return (target, is_pos_on_right_edge(target))
+}
+
+pub fn bottom_left_callback(original_pos: i8, n: i8) -> (i8, bool){
+    let target = original_pos + n*9;
+    return (target, is_pos_on_left_edge(target))
 }
