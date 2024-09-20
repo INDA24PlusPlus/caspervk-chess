@@ -19,10 +19,8 @@ let board_state = game.do_move(board_pos_to_index(a2), board_pos_to_index(a4));
 # **BoardState**
 ## **Possible values**
     Default
-    WhiteChecked
-    BlackChecked
-    WhiteLoseByCheckMate
-    BlackLoseByCheckMate
+    Checked(Side)
+    CheckMated(Side)
     WhiteLoseByTime
     BlackLoseByTime
     DrawBy50Rule
