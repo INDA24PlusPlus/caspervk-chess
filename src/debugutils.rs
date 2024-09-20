@@ -1,23 +1,6 @@
 use caspervk_chess::Piece;
 use caspervk_chess::Side;
 use colored::Colorize;
-
-pub fn board_pos_to_index(board_pos: String) -> i8{
-    let mut toReturn = 0;
-    toReturn += (board_pos.chars().nth(1).unwrap().to_digit(10).unwrap()-1)*8;
-    match board_pos.to_lowercase().chars().nth(0).unwrap(){
-        'a' => toReturn += 0,
-        'b' => toReturn += 1,
-        'c' => toReturn += 2,
-        'd' => toReturn += 3,
-        'e' => toReturn += 4,
-        'f' => toReturn += 5,
-        'g' => toReturn += 6,
-        'h' => toReturn += 7,
-        _ => unimplemented!(),
-    }
-    return toReturn as i8;
-}
 pub fn get_piece_visualisation_char(piece: Piece, side: Side) -> char{
     match piece{
         Piece::Pawn => {

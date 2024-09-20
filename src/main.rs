@@ -1,5 +1,4 @@
-use caspervk_chess::{BoardState, Game};
-use debugutils::board_pos_to_index;
+use caspervk_chess::{board_pos_to_index, BoardState, Game};
 use std::io;
 mod debugutils;
 
