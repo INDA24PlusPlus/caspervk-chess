@@ -12,25 +12,25 @@ pub enum Piece{
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum Side{
-    White = 0,
-    Black = 1,
-    None = 2
+pub enum Side {
+    White,
+    Black,
+    None,
 }
 
-#[derive(Debug, Clone)]
-pub enum BoardState{
-    Default = 0,
-    WhiteChecked = 1,
-    BlackChecked = 2,
-    WhiteLoseByCheckMate = 3,
-    BlackLoseByCheckMate = 4,
-    WhiteLoseByTime = 5,
-    BlackLoseByTime = 6,
-    DrawBy50Rule = 7,
-    DrawByStaleMate = 8,
-    WhitePromotion = 9,
-    BlackPromotion = 10,
+#[derive(Debug, Clone, PartialEq)]
+pub enum BoardState {
+    Default,
+    Check(Side),
+    CheckMate(Side),
+    WhiteLoseByCheckMate,
+    BlackLoseByCheckMate,
+    WhiteLoseByTime,
+    BlackLoseByTime,
+    DrawBy50Rule,
+    DrawByStaleMate,
+    WhitePromotion,
+    BlackPromotion,
 }
 #[derive(Debug, Clone)]
 struct CastleInfo{
@@ -447,21 +447,34 @@ impl Game{
     
         return true;
     }
+
+    //gets current turns king threat status. (if checked or checkmated)
+    fn get_king_threat_status(&self) -> BoardState{
+        let king_pos = if self.curr_turn == Side::White {
+            self.white_king_pos
+        } else {
+            self.black_king_pos
+        };
+        if Self::is_checked(&self, king_pos, false){
+            if Self::is_checked_mate(&self, king_pos){
+                return BoardState::CheckMate(self.curr_turn);
+            }
+            return BoardState::Check(self.curr_turn);
+        }
+        return BoardState::Default;
+    }
     
     fn get_board_state(&mut self) -> BoardState{
-        //TODO: Clean this repetitive code up.
-       if(self.curr_turn == Side::White && Self::is_checked(&self, self.white_king_pos, false)){
-        if(self.is_checked_mate(self.white_king_pos)){
-            return BoardState::WhiteLoseByCheckMate;
+        let threat_status = Self::get_king_threat_status(&self);
+        if threat_status != BoardState::Default{
+            return threat_status;
         }
-        return BoardState::WhiteChecked;
-       }
-       if(self.curr_turn == Side::Black && Self::is_checked(&self, self.black_king_pos, false)){
-        if(self.is_checked_mate(self.black_king_pos)){
-            return BoardState::BlackLoseByCheckMate;
+        if self.fifty_move_rule == 0{
+            return BoardState::DrawBy50Rule;
         }
-        return BoardState::BlackChecked;
-       }
+        if Self::is_stalemate(&self){
+            return BoardState::DrawByStaleMate;
+        }
         return BoardState::Default;
     }
     pub fn choose_promotion_piece(&mut self, piece: Piece) -> BoardState{
@@ -474,6 +487,22 @@ impl Game{
         path.iter().all(|&p| self.board_pieces[p as usize] == Piece::None && !self.is_checked(p, false))
     }
     
+    fn should_reset_fifty_move_rule(&self, move_origin: i8, move_target: i8) -> bool{
+        return self.board_pieces[move_target as usize] != Piece::None || self.board_pieces[move_origin as usize] == Piece::Pawn;
+    }
+    fn is_stalemate(&self) -> bool{
+        let mut no_possible_movements = true;
+        for (i, &Side) in self.board_pieces_sides.iter().enumerate(){
+            if(Side != self.curr_turn && Self::get_position_possible_movements(&self, i as i8).len() > 0){
+                no_possible_movements = false;
+                break;
+            }
+        }
+        if(no_possible_movements){
+            return true;
+        }
+        return false;
+    }
     //this function is so ugly and repetitive but i cba because if split into other function all hell breaks loose with rust compiler
     fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
         let mut pawn_awaiting_promo = false;
@@ -550,24 +579,11 @@ impl Game{
         self.board_pieces_sides[origin as usize] = Side::None;
 
         if !on_clone{
-            if(self.board_pieces[target as usize] != Piece::None || self.board_pieces[origin as usize] == Piece::Pawn){
+            if self.should_reset_fifty_move_rule(origin, target){
                 self.fifty_move_rule = 50;
-            }
-            else if self.fifty_move_rule == 0 {
-                return BoardState::DrawBy50Rule;
             }
             else{
                 self.fifty_move_rule -= 1;
-            }
-            let mut no_possible_movements = true;
-            for (i, &Side) in self.board_pieces_sides.iter().enumerate(){
-                if(Side != self.curr_turn && Self::get_position_possible_movements(&self, i as i8).len() > 0){
-                    no_possible_movements = false;
-                    break;
-                }
-            }
-            if(no_possible_movements){
-                return BoardState::DrawByStaleMate;
             }
 
             self.last_move_origin = origin;
