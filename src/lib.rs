@@ -148,13 +148,11 @@ pub struct Game{
     pub board_pieces: [Piece; 64],
     pub board_pieces_sides: [Side; 64],
     pub curr_turn: Side,
-    pub castle_info: CastleInfo,
-    pub fifty_move_rule: i8,
-    pub white_king_pos: i8,
-    pub black_king_pos: i8,
+    castle_info: CastleInfo,
+    fifty_move_rule: i8,
     pub last_move_origin: i8,
     pub last_move_target: i8,
-    pub pawn_awaiting_promotion_pos: i8,
+    pawn_awaiting_promotion_pos: i8,
 }
 
 
