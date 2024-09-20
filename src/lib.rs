@@ -21,8 +21,8 @@ pub enum Side {
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoardState {
     Default,
-    Check(Side),
-    CheckMate(Side),
+    Checked(Side),
+    CheckMated(Side),
     WhiteLoseByCheckMate,
     BlackLoseByCheckMate,
     WhiteLoseByTime,
@@ -457,9 +457,9 @@ impl Game{
         };
         if Self::is_checked(&self, king_pos, false){
             if Self::is_checked_mate(&self, king_pos){
-                return BoardState::CheckMate(self.curr_turn);
+                return BoardState::CheckMated(self.curr_turn);
             }
-            return BoardState::Check(self.curr_turn);
+            return BoardState::Checked(self.curr_turn);
         }
         return BoardState::Default;
     }
