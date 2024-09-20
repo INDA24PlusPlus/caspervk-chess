@@ -232,28 +232,41 @@ impl Game{
         Self::get_piece_orthogonal_movements(&self, position, side, out, 8);
     }
 
+    fn add_castling_moves(&self, out: &mut Vec<i8>) {
+        if !self.is_checked(self.get_curr_turn_king_pos(), false) {
+            match self.curr_turn {
+                Side::White => self.add_white_castling_moves(out),
+                Side::Black => self.add_black_castling_moves(out),
+                _ => {},
+            }
+        }
+    }
+
+    fn add_white_castling_moves(&self, out: &mut Vec<i8>) {
+        if !self.castle_info.top_king_moved {
+            if !self.castle_info.top_left_rook_moved && self.can_castle(&[1, 2, 3]) {
+                out.push(2);
+            } else if !self.castle_info.top_right_rook_moved && self.can_castle(&[5, 6]) {
+                out.push(6);
+            }
+        }
+    }
+
+    fn add_black_castling_moves(&self, out: &mut Vec<i8>) {
+        if !self.castle_info.bottom_king_moved {
+            if !self.castle_info.bottom_left_rook_moved && self.can_castle(&[57, 58, 59]) {
+                out.push(58);
+            } else if !self.castle_info.bottom_right_rook_moved && self.can_castle(&[61, 62]) {
+                out.push(62);
+            }
+        }
+    }
+
     fn get_king_possible_movements(&self, position: i8, side: Side, out: &mut Vec<i8>, filter: bool){
         Self::get_piece_orthogonal_movements(&self, position, side, out, 2);
         Self::get_piece_diagonal_movements(&self, position, side, out, 2);
-
-        if(filter == true){
-            // need clean this up later
-            if(!self.is_checked(position, false)){
-                if(self.curr_turn == Side::White && !self.castle_info.top_king_moved){
-                    if !self.castle_info.top_left_rook_moved && !self.is_checked(3, false) && !self.is_checked(2, false) && self.board_pieces[1] == Piece::None && self.board_pieces[2] == Piece::None && self.board_pieces[3] == Piece::None{
-                        out.push(2);
-                    } else if !self.castle_info.top_right_rook_moved && !self.is_checked(5, false) && !self.is_checked(6, false) && self.board_pieces[5] == Piece::None && self.board_pieces[6] == Piece::None{
-                        out.push(6);
-                    }
-                }
-                else if !self.castle_info.bottom_king_moved{
-                    if !self.castle_info.bottom_left_rook_moved && !self.is_checked(58, false) && !self.is_checked(59, false) && self.board_pieces[57] == Piece::None && self.board_pieces[58] == Piece::None && self.board_pieces[59] == Piece::None{
-                        out.push(58);
-                    } else if !self.castle_info.bottom_right_rook_moved && !self.is_checked(61, false) && !self.is_checked(62, false) && self.board_pieces[61] == Piece::None && self.board_pieces[62] == Piece::None{
-                        out.push(62);
-                    }
-                }
-            }
+        if(filter){
+            self.add_castling_moves(out);
         }
     }
     
@@ -456,6 +469,11 @@ impl Game{
         self.board_pieces_sides[self.pawn_awaiting_promotion_pos as usize] = self.curr_turn;
         return self.get_board_state();
     }
+
+    fn can_castle(&self, path: &[i8]) -> bool {
+        path.iter().all(|&p| self.board_pieces[p as usize] == Piece::None && !self.is_checked(p, false))
+    }
+    
     //this function is so ugly and repetitive but i cba because if split into other function all hell breaks loose with rust compiler
     fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
         let mut pawn_awaiting_promo = false;
