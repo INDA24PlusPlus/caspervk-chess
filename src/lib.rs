@@ -1,6 +1,5 @@
 use std::{default, result};
 
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Piece{
     King = 0,
@@ -109,22 +108,18 @@ fn top_right_callback(original_pos: i8, n: i8) -> (i8, bool){
     let target = original_pos - n*9;
     return (target, is_pos_on_right_edge(target))
 }
-
 fn top_left_callback(original_pos: i8, n: i8) -> (i8, bool){
     let target = original_pos - n*7;
     return (target, is_pos_on_left_edge(target))
 }
-
 fn bottom_right_callback(original_pos: i8, n: i8) -> (i8, bool){
     let target = original_pos + n*7;
     return (target, is_pos_on_right_edge(target))
 }
-
 fn bottom_left_callback(original_pos: i8, n: i8) -> (i8, bool){
     let target = original_pos + n*9;
     return (target, is_pos_on_left_edge(target))
 }
-
 
 pub fn board_pos_to_index(board_pos: String) -> i8{
     let mut toReturn = 0;
@@ -156,7 +151,6 @@ pub struct Game{
     pub last_move_target: i8,
     pawn_awaiting_promotion_pos: i8,
 }
-
 
 impl Game{
     pub fn new() -> Self {
@@ -457,9 +451,10 @@ impl Game{
        }
         return BoardState::Default;
     }
-    pub fn choose_promotion_piece(&mut self, piece: Piece){
+    pub fn choose_promotion_piece(&mut self, piece: Piece) -> BoardState{
         self.board_pieces[self.pawn_awaiting_promotion_pos as usize] = piece;
         self.board_pieces_sides[self.pawn_awaiting_promotion_pos as usize] = self.curr_turn;
+        return self.get_board_state();
     }
     //this function is so ugly and repetitive but i cba because if split into other function all hell breaks loose with rust compiler
     fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
