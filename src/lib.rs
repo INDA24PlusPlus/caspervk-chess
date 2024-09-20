@@ -370,6 +370,21 @@ impl Game{
             }
         }
     }
+
+    fn filter_out_moves_causing_self_check(&self, origin: i8, to_filter: Vec<i8>) -> Vec<i8>{
+        let mut to_return = Vec::new();
+        for target in to_filter {
+            let mut cloned_game = self.clone();
+            cloned_game.do_move_internal(origin, target, true);
+
+            let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
+
+            if !was_checked {
+                to_return.push(target);
+            }
+        }
+        return to_return;
+    }
     fn get_position_possible_movements_internal(&self, position: i8, filter: bool) -> Vec<i8>{
         let pos_side: Side = self.board_pieces_sides[position as usize];
         let pos_piece: Piece = self.board_pieces[position as usize];
@@ -387,18 +402,7 @@ impl Game{
         if(!filter){
             return to_return;
         }
-        let mut to_return_filtered = Vec::new();
-        for possible_movement in to_return {
-            let mut cloned_game = self.clone();
-            cloned_game.do_move_internal(position, possible_movement, true);
-
-            let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
-
-            if !was_checked {
-                to_return_filtered.push(possible_movement);
-            }
-        }
-        return to_return_filtered;
+        return self.filter_out_moves_causing_self_check(position, to_return);
     }
 
     pub fn get_position_possible_movements(&self, position: i8) -> Vec<i8>{
@@ -414,6 +418,7 @@ impl Game{
         } 
         return false;
     }
+
     fn get_curr_turn_king_pos(&self) -> i8{
         if(self.curr_turn == Side::Black){
             return self.black_king_pos;
@@ -444,7 +449,7 @@ impl Game{
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -477,6 +482,7 @@ impl Game{
         }
         return BoardState::Default;
     }
+
     pub fn choose_promotion_piece(&mut self, piece: Piece) -> BoardState{
         self.board_pieces[self.pawn_awaiting_promotion_pos as usize] = piece;
         self.board_pieces_sides[self.pawn_awaiting_promotion_pos as usize] = self.curr_turn;
@@ -490,6 +496,7 @@ impl Game{
     fn should_reset_fifty_move_rule(&self, move_origin: i8, move_target: i8) -> bool{
         return self.board_pieces[move_target as usize] != Piece::None || self.board_pieces[move_origin as usize] == Piece::Pawn;
     }
+
     fn is_stalemate(&self) -> bool{
         let mut no_possible_movements = true;
         for (i, &Side) in self.board_pieces_sides.iter().enumerate(){
@@ -585,7 +592,6 @@ impl Game{
             else{
                 self.fifty_move_rule -= 1;
             }
-
             self.last_move_origin = origin;
             self.last_move_target = target;
             if(pawn_awaiting_promo){
