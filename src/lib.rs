@@ -151,6 +151,8 @@ pub struct Game{
     pub last_move_origin: i8,
     pub last_move_target: i8,
     pawn_awaiting_promotion_pos: i8,
+    history_board_pieces: Vec<[Piece; 64]>,
+    history_board_pieces_sides: Vec<[Side; 64]>,
 }
 
 impl Game{
@@ -173,7 +175,9 @@ impl Game{
             black_king_pos: 60,
             last_move_origin: -1,
             last_move_target: -1,
-            pawn_awaiting_promotion_pos: -1
+            pawn_awaiting_promotion_pos: -1,
+            history_board_pieces: Vec::new(),
+            history_board_pieces_sides: Vec::new(),
         };
     }
 
@@ -596,5 +600,17 @@ impl Game{
         self.last_move_target = target;
         self.curr_turn = !self.curr_turn;
         return toReturn;
+    }
+
+    pub fn request_draw(&self) -> bool{
+        let mut repeated_positions_count = 0;
+        for i in 0..self.history_board_pieces.len(){
+            for j in 0..i{
+                if(self.history_board_pieces[i] == self.history_board_pieces[j] && self.history_board_pieces_sides[i] == self.history_board_pieces_sides[j]){
+                    repeated_positions_count += 1;
+                }
+            }
+        }
+        return repeated_positions_count > 2;
     }
 }
