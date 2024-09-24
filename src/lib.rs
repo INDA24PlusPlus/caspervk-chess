@@ -564,7 +564,7 @@ impl Game{
             _ => {}
         }
     }
-    // "on_clone" refers to the method being called when the object is being cloned to check for possible movements causing a self check. We dont want to do certain things if that is the case.
+    // "on_clone" refers to the method being called when the object is being cloned to check for possible movements causing a self check. We dont want to do certain things if that is the case as it will cause stack overflow.
     fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
         let mut moves_to_perform = Vec::new();
 
