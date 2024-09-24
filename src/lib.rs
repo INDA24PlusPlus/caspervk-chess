@@ -594,6 +594,8 @@ impl Game{
     }
     
     pub fn do_move(&mut self, origin: i8, target: i8) -> BoardState {
+        self.history_board_pieces.push(self.board_pieces);
+        self.history_board_pieces_sides.push(self.board_pieces_sides);
         let toReturn = self.do_move_internal(origin, target, false);
         self.update_pieces_has_moved_status(origin);
         self.last_move_origin = origin;
