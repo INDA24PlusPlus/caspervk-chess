@@ -61,11 +61,15 @@ Returns the current state of the board that was updated after the move was made.
 # **choose_promotion_piece**
 Chooses the piece that the pawn being promoted will become. It is important that this method is called after a **do_move** returns either **WhitePromotion** or **BlackPromotion**.
 ## **Parameters**
-
 ### ```piece: Piece```
 ### **Return value**
 ### ```BoardState```
 Returns the state of the board after the promotion was made.
+# **request_draw**
+Requests draw based on threefold repetition.
+## **Return value**
+### ```bool```
+If request was rightful
 # **Utility functions**
 # **board_pos_to_index** 
 Converts a board position to an array index. For example "a1" converts to 0.
@@ -73,8 +77,3 @@ Converts a board position to an array index. For example "a1" converts to 0.
 ### ```board_pos: String```
 ## **Return value**
 ### ```i8```
-# **request_draw**
-Requests draw based on threefold repetition.
-## **Return value**
-### ```bool```
-If request was rightful
