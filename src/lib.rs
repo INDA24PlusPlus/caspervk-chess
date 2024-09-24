@@ -1,4 +1,4 @@
-use std::{default, result};
+use std::{convert::TryFrom, default, ops::Not, result};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Piece{
@@ -18,6 +18,19 @@ pub enum Side {
     None,
 }
 
+impl Not for Side {
+    type Output = Self;
+
+    fn not(self) -> Self {
+        match self {
+            Side::White => Side::Black,
+            Side::Black => Side::White,
+            Side::None => Side::None
+        }
+    }
+}
+
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoardState {
     Default,
@@ -34,13 +47,14 @@ pub enum BoardState {
 }
 #[derive(Debug, Clone)]
 struct CastleInfo{
-    pub top_right_rook_moved: bool,
-    pub bottom_right_rook_moved: bool,
-    pub top_left_rook_moved: bool,
-    pub bottom_left_rook_moved: bool,
-    pub top_king_moved: bool,
-    pub bottom_king_moved: bool
+    pub white_rook_one_moved: bool,
+    pub white_rook_two_moved: bool,
+    pub black_rook_one_moved: bool,
+    pub black_rook_two_moved: bool,
+    pub white_king_moved: bool,
+    pub black_king_moved: bool
 }
+
 
 const INITIAL_BOARD_PIECES: [Piece; 64] = [
     // First rank (White's major pieces)
@@ -160,12 +174,12 @@ impl Game{
             curr_turn: Side::White,
             castle_info: CastleInfo
             {
-                top_king_moved: false, 
-                bottom_king_moved: false, 
-                bottom_right_rook_moved: false, 
-                bottom_left_rook_moved: false, 
-                top_left_rook_moved: false, 
-                top_right_rook_moved: false
+                black_king_moved: false, 
+                white_king_moved: false, 
+                white_rook_one_moved: false, 
+                white_rook_two_moved: false, 
+                black_rook_one_moved: false, 
+                black_rook_two_moved: false
             },
             fifty_move_rule: 50,
             white_king_pos: 4,
@@ -243,20 +257,20 @@ impl Game{
     }
 
     fn add_white_castling_moves(&self, out: &mut Vec<i8>) {
-        if !self.castle_info.top_king_moved {
-            if !self.castle_info.top_left_rook_moved && self.can_castle(&[1, 2, 3]) {
+        if !self.castle_info.white_king_moved {
+            if !self.castle_info.white_rook_one_moved && self.can_castle(&[1, 2, 3]) {
                 out.push(2);
-            } else if !self.castle_info.top_right_rook_moved && self.can_castle(&[5, 6]) {
+            } else if !self.castle_info.white_rook_two_moved && self.can_castle(&[5, 6]) {
                 out.push(6);
             }
         }
     }
 
     fn add_black_castling_moves(&self, out: &mut Vec<i8>) {
-        if !self.castle_info.bottom_king_moved {
-            if !self.castle_info.bottom_left_rook_moved && self.can_castle(&[57, 58, 59]) {
+        if !self.castle_info.black_king_moved {
+            if !self.castle_info.black_rook_one_moved && self.can_castle(&[57, 58, 59]) {
                 out.push(58);
-            } else if !self.castle_info.bottom_right_rook_moved && self.can_castle(&[61, 62]) {
+            } else if !self.castle_info.black_rook_two_moved && self.can_castle(&[61, 62]) {
                 out.push(62);
             }
         }
@@ -464,6 +478,10 @@ impl Game{
         }
         return BoardState::Default;
     }
+
+    fn rank_contains_pawn(to_check: Vec<Piece>) -> bool{
+        return to_check.iter().any(|&a| a==Piece::Pawn);
+    }
     
     fn get_board_state(&mut self) -> BoardState{
         let threat_status = Self::get_king_threat_status(&self);
@@ -475,6 +493,12 @@ impl Game{
         }
         if Self::is_stalemate(&self){
             return BoardState::DrawByStaleMate;
+        }
+        if(Self::rank_contains_pawn(self.board_pieces[0..7].to_vec())){
+            return BoardState::BlackPromotion;
+        }
+        else if(Self::rank_contains_pawn(self.board_pieces[56..63].to_vec())){
+            return BoardState::WhitePromotion;
         }
         return BoardState::Default;
     }
@@ -506,80 +530,65 @@ impl Game{
         }
         return false;
     }
-    //this function is so ugly and repetitive but i cba because if split into other function all hell breaks loose with rust compiler
-    fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
-        let mut pawn_awaiting_promo = false;
 
-        //as mentioned above........
+    fn get_side_castling_move(king_start: i8, origin: i8, target: i8, rook_one_moved: bool, rook_two_moved: bool, king_moved: bool) -> Option<[i8; 2]>{
+        if(origin == king_start && !king_moved){
+            if(target == king_start-2 && !rook_one_moved){
+                return Some([king_start-4, king_start-1]);
+            }
+            else if(target == king_start+2 && !rook_two_moved){
+                return Some([king_start+3, king_start-1]);
+            }
+        }    
+        return None;
+    }
+
+    //returns a move containing the origin of the pawn that is being en passanted and the target of the same pawn. Will cause a deletion of that pawn.
+    fn get_en_passant_move(&self, origin: i8, target: i8) -> Option<[i8; 2]>{
+        if(self.curr_turn == Side::White && target > 7 && self.board_pieces[(target-8) as usize] == Piece::Pawn && self.last_move_origin == target+8 && self.last_move_target == target-8){
+            return Some([target-8, target-8]);
+        }
+        else if(target < 56 && self.board_pieces[(target+8) as usize] == Piece::Pawn && self.last_move_origin == target-8 && self.last_move_target == target+8){
+            return Some([target+8, target+8]);
+        }
+        return None;
+    }
+    
+    fn update_pieces_has_moved_status(&mut self, origin: i8){
+        match origin {
+            0 => { self.castle_info.white_rook_one_moved = true;},
+            7 => { self.castle_info.white_rook_two_moved = true;},
+            56 => { self.castle_info.black_rook_one_moved = true;},
+            63 => { self.castle_info.black_rook_two_moved = true;},
+            4 => { self.castle_info.white_king_moved = true;},
+            60 => { self.castle_info.black_king_moved = true;},
+            _ => {}
+        }
+    }
+    // "on_clone" refers to the method being called when the object is being cloned to check for possible movements causing a self check. We dont want to do certain things if that is the case.
+    fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
+        let mut moves_to_perform = Vec::new();
+
+        moves_to_perform.push(Some([origin, target]));
+        moves_to_perform.push(self.get_en_passant_move(origin, target));
         if(self.curr_turn == Side::White){
-            if self.board_pieces[origin as usize]==Piece::Pawn{
-                if target > 7 && self.board_pieces[(target-8) as usize] == Piece::Pawn && self.last_move_origin == target+8 && self.last_move_target == target-8{
-                    //en passant logic
-                    self.board_pieces[(target-8) as usize] = Piece::None;
-                    self.board_pieces_sides[(target-8) as usize] = Side::None;
-                }
-                else if target < 7{
-                    pawn_awaiting_promo = true;
-                }
-            }
-            //Castling logic
-            if !self.castle_info.top_king_moved && !self.is_checked(4, false){
-                if !self.castle_info.top_left_rook_moved && target == 2 && !self.is_checked(3, false) && !self.is_checked(2, false) && self.board_pieces[1] == Piece::None && self.board_pieces[2] == Piece::None && self.board_pieces[3] == Piece::None{
-                    self.board_pieces[3] = self.board_pieces[0];
-                    self.board_pieces_sides[3] = self.board_pieces_sides[0];
-                    self.board_pieces[0] = Piece::None;
-                    self.board_pieces_sides[0] = Side::None;
-                } else if !self.castle_info.top_right_rook_moved && target == 6 && !self.is_checked(5, false) && !self.is_checked(6, false) && self.board_pieces[5] == Piece::None && self.board_pieces[6] == Piece::None{
-                    self.board_pieces[5] = self.board_pieces[7];
-                    self.board_pieces_sides[5] = self.board_pieces_sides[7];
-                    self.board_pieces[7] = Piece::None;
-                    self.board_pieces_sides[7] = Side::None;
-                }
-            }
-            match origin {
-                0 => { self.castle_info.top_left_rook_moved = true;}
-                7 => { self.castle_info.top_right_rook_moved = true;}
-                4 => { self.castle_info.bottom_king_moved = true;},
-                _ => {}
-            }    
+            moves_to_perform.push(Self::get_side_castling_move(4, origin, target, self.castle_info.white_rook_one_moved, self.castle_info.white_rook_two_moved, self.castle_info.white_king_moved));  
         }
         else{
-            if self.board_pieces[origin as usize]==Piece::Pawn{
-                if(target < 56 && self.board_pieces[(target+8) as usize] == Piece::Pawn && self.last_move_origin == target-8 && self.last_move_target == target+8){
-                    //En passant logic
-                    self.board_pieces[(target+8) as usize] = Piece::None;
-                    self.board_pieces_sides[(target+8) as usize] = Side::None;
-                }
-                else if(target > 55){
-                    pawn_awaiting_promo = true;
-                }
-            }
-            //Castling logic
-            if !self.castle_info.bottom_king_moved && !self.is_checked(60, false){
-                if !self.castle_info.bottom_left_rook_moved && target == 58 && !self.is_checked(58, false) && !self.is_checked(59, false) && self.board_pieces[57] == Piece::None && self.board_pieces[58] == Piece::None && self.board_pieces[59] == Piece::None{
-                    self.board_pieces[59] = self.board_pieces[56];
-                    self.board_pieces_sides[59] = self.board_pieces_sides[56];
-                    self.board_pieces[56] = Piece::None;
-                    self.board_pieces_sides[56] = Side::None;
-                } else if !self.castle_info.bottom_right_rook_moved && target == 62 && !self.is_checked(61, false) && !self.is_checked(62, false) && self.board_pieces[61] == Piece::None && self.board_pieces[62] == Piece::None{
-                    self.board_pieces[61] = self.board_pieces[63];
-                    self.board_pieces_sides[61] = self.board_pieces_sides[63];
-                    self.board_pieces[63] = Piece::None;
-                    self.board_pieces_sides[63] = Side::None;
-                }
-            }
-            match origin {
-                56 => { self.castle_info.bottom_left_rook_moved = true;}
-                63 => { self.castle_info.bottom_right_rook_moved = true;},
-                60 => { self.castle_info.bottom_king_moved = true;},
-                _ => {}
-            }  
+            moves_to_perform.push(Self::get_side_castling_move(60, origin, target, self.castle_info.black_rook_one_moved, self.castle_info.black_rook_two_moved, self.castle_info.black_king_moved));
         }
 
-        self.board_pieces[target as usize] = self.board_pieces[origin as usize];
-        self.board_pieces_sides[target as usize] = self.board_pieces_sides[origin as usize];
-        self.board_pieces[origin as usize] = Piece::None;
-        self.board_pieces_sides[origin as usize] = Side::None;
+        for m in moves_to_perform.iter(){
+            if !m.is_none(){
+                let value = m.unwrap();
+                let value_origin = value[0] as usize;
+                let value_target = value[1] as usize;
+                self.board_pieces[value_target] = self.board_pieces[value_origin];
+                self.board_pieces_sides[value_target] = self.board_pieces_sides[value_origin];
+                self.board_pieces[value_origin] = Piece::None;
+                self.board_pieces_sides[value_origin] = Side::None
+            }
+        }
 
         if !on_clone{
             if self.should_reset_fifty_move_rule(origin, target){
@@ -588,29 +597,17 @@ impl Game{
             else{
                 self.fifty_move_rule -= 1;
             }
-            self.last_move_origin = origin;
-            self.last_move_target = target;
-            if(pawn_awaiting_promo){
-                self.pawn_awaiting_promotion_pos = target;
-                if(self.curr_turn == Side::White){
-                    self.curr_turn = Side::Black;
-                    return BoardState::WhitePromotion;
-                }
-                self.curr_turn = Side::White;
-                return BoardState::BlackPromotion;
-            }
-            if(self.curr_turn == Side::White){
-                self.curr_turn = Side::Black;
-            }
-            else{
-                self.curr_turn = Side::White;
-            }
             return self.get_board_state();
         }
         return BoardState::Default;
     }
     
     pub fn do_move(&mut self, origin: i8, target: i8) -> BoardState {
-        return self.do_move_internal(origin, target, false);
+        let toReturn = self.do_move_internal(origin, target, false);
+        self.update_pieces_has_moved_status(origin);
+        self.last_move_origin = origin;
+        self.last_move_target = target;
+        self.curr_turn = !self.curr_turn;
+        return toReturn;
     }
 }
