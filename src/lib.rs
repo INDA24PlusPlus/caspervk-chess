@@ -55,34 +55,24 @@ struct CastleInfo{
 }
 
 const INITIAL_BOARD_PIECES: [Piece; 64] = [
-    // First rank (White's major pieces)
     Piece::Rook, Piece::Knight, Piece::Bishop, Piece::Queen, Piece::King, Piece::Bishop, Piece::Knight, Piece::Rook,
-    // Second rank (White's pawns)
     Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn,
-    // Middle ranks (empty squares)
     Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None,
     Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None,
     Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None,
     Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None, Piece::None,
-    // Seventh rank (Black's pawns)
     Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn, Piece::Pawn,
-    // Eighth rank (Black's major pieces)
     Piece::Rook, Piece::Knight, Piece::Bishop, Piece::Queen, Piece::King, Piece::Bishop, Piece::Knight, Piece::Rook,
 ];
 
 const INITIAL_BOARD_SIDES: [Side; 64] = [
-    // First rank (White's major pieces)
     Side::White, Side::White, Side::White, Side::White, Side::White, Side::White, Side::White, Side::White,
-    // Second rank (White's pawns)
     Side::White, Side::White, Side::White, Side::White, Side::White, Side::White, Side::White, Side::White,
-    // Middle ranks (empty squares)
     Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None,
     Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None,
     Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None,
     Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None, Side::None,
-    // Seventh rank (Black's pawns)
     Side::Black, Side::Black, Side::Black, Side::Black, Side::Black, Side::Black, Side::Black, Side::Black,
-    // Eighth rank (Black's major pieces)
     Side::Black, Side::Black, Side::Black, Side::Black, Side::Black, Side::Black,Side::Black, Side::Black
 ];
 
