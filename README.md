@@ -73,3 +73,8 @@ Converts a board position to an array index. For example "a1" converts to 0.
 ### ```board_pos: String```
 ## **Return value**
 ### ```i8```
+# **request_draw**
+Requests draw based on threefold repetition.
+## **Return value**
+### ```bool```
+If request was rightful
