@@ -30,6 +30,7 @@ impl Not for Side {
     }
 }
 
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoardState {
     Default,
@@ -387,7 +388,7 @@ impl Game{
         let mut to_return = Vec::new();
         for target in to_filter {
             let mut cloned_game = self.clone();
-            cloned_game.do_move(origin, target);
+            cloned_game.do_move_internal(origin, target, true);
 
             let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
 
@@ -452,7 +453,7 @@ impl Game{
         for (i, possible_movements) in piece_movements {
             for target in possible_movements {
                 let mut cloned_game = self.clone();
-                cloned_game.do_move(i, target);
+                cloned_game.do_move_internal(i, target, true);
     
                 let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
     
@@ -563,8 +564,8 @@ impl Game{
             _ => {}
         }
     }
-    
-    pub fn do_move(&mut self, origin: i8, target: i8) -> BoardState{
+    // "on_clone" refers to the method being called when the object is being cloned to check for possible movements causing a self check. We dont want to do certain things if that is the case.
+    fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
         let mut moves_to_perform = Vec::new();
 
         moves_to_perform.push(Some([origin, target]));
@@ -588,19 +589,24 @@ impl Game{
             }
         }
 
-        if self.should_reset_fifty_move_rule(origin, target){
-            self.fifty_move_rule = 50;
+        if !on_clone{
+            if self.should_reset_fifty_move_rule(origin, target){
+                self.fifty_move_rule = 50;
+            }
+            else{
+                self.fifty_move_rule -= 1;
+            }
+            return self.get_board_state();
         }
-        else{
-            self.fifty_move_rule -= 1;
-        }
-
-        let board_state =  self.get_board_state();
+        return BoardState::Default;
+    }
+    
+    pub fn do_move(&mut self, origin: i8, target: i8) -> BoardState {
+        let toReturn = self.do_move_internal(origin, target, false);
         self.update_pieces_has_moved_status(origin);
         self.last_move_origin = origin;
         self.last_move_target = target;
         self.curr_turn = !self.curr_turn;
-
-        return board_state;
+        return toReturn;
     }
 }
