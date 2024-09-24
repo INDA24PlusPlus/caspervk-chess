@@ -564,7 +564,7 @@ impl Game{
         }
     }
     
-    fn do_move(&mut self, origin: i8, target: i8) -> BoardState{
+    pub fn do_move(&mut self, origin: i8, target: i8) -> BoardState{
         let mut moves_to_perform = Vec::new();
 
         moves_to_perform.push(Some([origin, target]));
