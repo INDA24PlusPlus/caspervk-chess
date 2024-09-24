@@ -387,7 +387,7 @@ impl Game{
         let mut to_return = Vec::new();
         for target in to_filter {
             let mut cloned_game = self.clone();
-            cloned_game.do_move_internal(origin, target, true);
+            cloned_game.do_move(origin, target);
 
             let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
 
@@ -452,7 +452,7 @@ impl Game{
         for (i, possible_movements) in piece_movements {
             for target in possible_movements {
                 let mut cloned_game = self.clone();
-                cloned_game.do_move_internal(i, target, true);
+                cloned_game.do_move(i, target);
     
                 let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
     
@@ -594,6 +594,7 @@ impl Game{
         else{
             self.fifty_move_rule -= 1;
         }
+
         let board_state =  self.get_board_state();
         self.update_pieces_has_moved_status(origin);
         self.last_move_origin = origin;
@@ -601,6 +602,5 @@ impl Game{
         self.curr_turn = !self.curr_turn;
 
         return board_state;
-        
     }
 }
