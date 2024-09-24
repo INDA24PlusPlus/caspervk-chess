@@ -30,7 +30,6 @@ impl Not for Side {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoardState {
     Default,
