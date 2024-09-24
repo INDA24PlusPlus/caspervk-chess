@@ -30,7 +30,6 @@ impl Not for Side {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoardState {
     Default,
@@ -54,7 +53,6 @@ struct CastleInfo{
     pub white_king_moved: bool,
     pub black_king_moved: bool
 }
-
 
 const INITIAL_BOARD_PIECES: [Piece; 64] = [
     // First rank (White's major pieces)
@@ -565,8 +563,8 @@ impl Game{
             _ => {}
         }
     }
-    // "on_clone" refers to the method being called when the object is being cloned to check for possible movements causing a self check. We dont want to do certain things if that is the case.
-    fn do_move_internal(&mut self, origin: i8, target: i8, on_clone: bool) -> BoardState{
+    
+    fn do_move(&mut self, origin: i8, target: i8) -> BoardState{
         let mut moves_to_perform = Vec::new();
 
         moves_to_perform.push(Some([origin, target]));
@@ -590,24 +588,19 @@ impl Game{
             }
         }
 
-        if !on_clone{
-            if self.should_reset_fifty_move_rule(origin, target){
-                self.fifty_move_rule = 50;
-            }
-            else{
-                self.fifty_move_rule -= 1;
-            }
-            return self.get_board_state();
+        if self.should_reset_fifty_move_rule(origin, target){
+            self.fifty_move_rule = 50;
         }
-        return BoardState::Default;
-    }
-    
-    pub fn do_move(&mut self, origin: i8, target: i8) -> BoardState {
-        let toReturn = self.do_move_internal(origin, target, false);
+        else{
+            self.fifty_move_rule -= 1;
+        }
+        let board_state =  self.get_board_state();
         self.update_pieces_has_moved_status(origin);
         self.last_move_origin = origin;
         self.last_move_target = target;
         self.curr_turn = !self.curr_turn;
-        return toReturn;
+
+        return board_state;
+        
     }
 }
