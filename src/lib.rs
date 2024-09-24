@@ -30,7 +30,6 @@ impl Not for Side {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum BoardState {
     Default,
@@ -115,7 +114,6 @@ fn down_callback(original_pos: i8, n: i8) -> (i8, bool){
     let target = original_pos+n*8;
     return (target, is_pos_outside_of_board(target));
 }
-
 
 fn top_right_callback(original_pos: i8, n: i8) -> (i8, bool){
     let target = original_pos - n*9;
