@@ -282,45 +282,20 @@ impl Game{
 
     fn get_knight_possible_movements(&self, position: i8, side: Side, out: &mut Vec<i8>){
         if(!is_pos_on_left_edge(position)){
-            if position >= 17 && self.board_pieces_sides[(position - 17) as usize] != side {
-                out.push(position - 17);
-            }
-            if position <= 46 && self.board_pieces_sides[(position + 17) as usize] != side {
-                out.push(position + 17);
-            }
+            if position >= 17{ self.push_pos_if_non_ally(position-17, side, out); }
+            if position <= 46{ self.push_pos_if_non_ally(position+17, side, out); }
         }
 
         if(!is_pos_on_right_edge(position)){
-            if position >= 15 && self.board_pieces_sides[(position - 15) as usize] != side {
-                out.push(position - 15);
-            }
-            if position <= 48 && self.board_pieces_sides[(position + 15) as usize] != side {
-                out.push(position + 15);
-            }
+            if position >= 15{ self.push_pos_if_non_ally(position-17, side, out); }
+            if position <= 48{ self.push_pos_if_non_ally(position+15, side, out); }
         }
 
-        if position >= 10 && position % 8 >= 2 {
-            if self.board_pieces_sides[(position - 10) as usize] != side {
-                out.push(position - 10);
-            }
-        }
-        if position <= 53 && position % 8 <= 6 {
-            if self.board_pieces_sides[(position + 10) as usize] != side {
-                out.push(position + 10);
-            }
-        }
+        if position >= 10 && position % 8 >= 2 { self.push_pos_if_non_ally(position-10, side, out); }
+        if position <= 53 && position % 8 <= 6 { self.push_pos_if_non_ally(position+10, side, out); }
 
-        if position >= 6 && position % 8 <= 6 {
-            if self.board_pieces_sides[(position - 6) as usize] != side {
-                out.push(position - 6);
-            }
-        }
-        if position <= 57 && position % 8 >= 2 {
-            if self.board_pieces_sides[(position + 6) as usize] != side {
-                out.push(position + 6);
-            }
-        }
-
+        if position >= 6 && position % 8 <= 6 { self.push_pos_if_non_ally(position-6, side, out); }
+        if position <= 57 && position % 8 >= 2 { self.push_pos_if_non_ally(position+6, side, out); }
     }
 
     fn get_bishop_possible_movements(&self, position: i8, side: Side, out: &mut Vec<i8>){
