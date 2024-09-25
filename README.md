@@ -3,7 +3,7 @@
 use caspervk_chess::{board_pos_to_index, BoardState, Game};
 let mut game = Game::new();
 let possible_movements = game.get_position_possible_movements(board_pos_to_index("a2".to_string()));
-let board_state = game.do_move(board_pos_to_index(a2), board_pos_to_index("a4".to_string()));
+let board_state = game.do_move(board_pos_to_index("a2".to_string()), board_pos_to_index("a4".to_string()));
 ```
 # **Structs**
 
