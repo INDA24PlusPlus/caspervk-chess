@@ -287,7 +287,7 @@ impl Game{
         }
 
         if(!is_pos_on_right_edge(position)){
-            if position >= 15{ self.push_pos_if_non_ally(position-17, side, out); }
+            if position >= 15{ self.push_pos_if_non_ally(position-15, side, out); }
             if position <= 48{ self.push_pos_if_non_ally(position+15, side, out); }
         }
 
@@ -503,7 +503,7 @@ impl Game{
                 return Some([king_start-4, king_start-1]);
             }
             else if(target == king_start+2 && !rook_two_moved){
-                return Some([king_start+3, king_start-1]);
+                return Some([king_start+3, king_start+1]);
             }
         }    
         return None;
