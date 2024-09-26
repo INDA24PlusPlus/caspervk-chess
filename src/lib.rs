@@ -249,7 +249,7 @@ impl Game{
 
     fn add_white_castling_moves(&self, out: &mut Vec<i8>) {
         if !self.castle_info.white_king_moved {
-            if !self.castle_info.white_rook_one_moved && self.can_castle(&[1, 2, 3]) {
+            if !self.castle_info.white_rook_one_moved && self.can_castle(&[2, 3]) && self.board_pieces[1] == Piece::None {
                 out.push(2);
             } else if !self.castle_info.white_rook_two_moved && self.can_castle(&[5, 6]) {
                 out.push(6);
@@ -259,7 +259,7 @@ impl Game{
 
     fn add_black_castling_moves(&self, out: &mut Vec<i8>) {
         if !self.castle_info.black_king_moved {
-            if !self.castle_info.black_rook_one_moved && self.can_castle(&[57, 58, 59]) {
+            if !self.castle_info.black_rook_one_moved && self.can_castle(&[58, 59]) && self.board_pieces[57] == Piece::None {
                 out.push(58);
             } else if !self.castle_info.black_rook_two_moved && self.can_castle(&[61, 62]) {
                 out.push(62);
