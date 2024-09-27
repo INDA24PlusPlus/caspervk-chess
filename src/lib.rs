@@ -358,7 +358,6 @@ impl Game{
             cloned_game.do_move_internal(origin, target, true);
 
             let was_checked = cloned_game.is_checked(cloned_game.get_curr_turn_king_pos(), false);
-
             if !was_checked {
                 to_return.push(target);
             }
@@ -556,6 +555,12 @@ impl Game{
             }
         }
 
+        if(origin == self.black_king_pos){
+            self.black_king_pos = target;
+        }
+        else if(origin == self.white_king_pos){
+            self.white_king_pos = target;
+        }
         if !on_clone{
             if self.should_reset_fifty_move_rule(origin, target){
                 self.fifty_move_rule = 50;
