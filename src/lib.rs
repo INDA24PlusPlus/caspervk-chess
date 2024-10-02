@@ -465,7 +465,9 @@ impl Game{
     }
     
     fn get_board_state(&mut self) -> BoardState{
+        self.curr_turn = !self.curr_turn;
         let threat_status = Self::get_king_threat_status(&self);
+        self.curr_turn = !self.curr_turn;
         if threat_status != BoardState::Default{
             return threat_status;
         }
